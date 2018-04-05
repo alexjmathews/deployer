@@ -1,5 +1,6 @@
 /* eslint promise/avoid-new:"off" */
 const express = require('express');
+const { WebClient } = require('@slack/client');
 const { getData, writeData } = require('../src/data.js');
 const { updateDistribution } = require('../src/aws.js');
 
@@ -47,7 +48,27 @@ const error = err => ({
 // Remove deployment from data
 const closeDeployment = (req, data, deployment) => {
 	delete data[deployment.domain];
-	return writeData(req, data);
+	const web = new WebClient(req.webtaskContext.secrets.SLACK_TOKEN);
+	return writeData(req, data)
+		.then(() => {
+			deployment.slackMessage.message.attachments[0] = Object.assign(
+				deployment.slackMessage.message.attachments[0],
+				{
+					fallback: 'Deployment rejected',
+					pretext: `Deployment on ${deployment.domain} rejected by admin`,
+					color: 'danger',
+					footer: 'Status: Closed',
+					footer_icon: '',
+					ts: Date.now() / 1000
+				}
+			);
+			return web.chat.update({
+				channel: deployment.channel,
+				text: '',
+				ts: deployment.slackMessage.ts,
+				attachments: deployment.slackMessage.message.attachments
+			});
+		});
 };
 
 // Run origin shift
@@ -62,6 +83,27 @@ const startDeployment = (req, data, deployment) =>
 			});
 
 			return writeData(req, update);
+		})
+		.then(() => {
+			deployment.slackMessage.message.attachments[0] = Object.assign(
+				deployment.slackMessage.message.attachments[0],
+				{
+					fallback: 'Switching Origins',
+					pretext: `Migrating origins to target on ${deployment.domain}`,
+					text: `Specified Target was \`${deployment.specifiedTarget}\`. Approved by <@${deployment.admin}>`,
+					footer: 'Status: Origin Switch',
+					color: '#eda45a',
+					ts: Date.now() / 1000
+				}
+			);
+			const web = new WebClient(req.webtaskContext.secrets.SLACK_TOKEN);
+
+			return web.chat.update({
+				channel: deployment.channel,
+				text: '',
+				ts: deployment.slackMessage.ts,
+				attachments: deployment.slackMessage.message.attachments
+			});
 		});
 
 module.exports = () => {
@@ -76,21 +118,19 @@ module.exports = () => {
 			.then((data) => {
 				const domain = payload.callback_id.split('|')[0];
 				const deployment = data[domain];
-				console.log(deployment);
-
+				console.log(JSON.stringify(deployment, null, 4))
 				if (!deployment) {
 					return res.status(200)
 						.json(error('Could not find deployment'));
 				}
-
 				if (deployment.callback_id !== payload.callback_id) {
 					return res.status(200)
-						.json(error('Could not submit approval'));
+						.json(error('Could not submit approval - callback mismatch'));
 				}
 
 				if (deployment.status !== 'pending') {
 					return res.status(200)
-						.json(error('Could not submit approval'));
+						.json(error('Could not submit approval - not in pending'));
 				}
 
 				if (result === 'approve') {

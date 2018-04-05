@@ -1,5 +1,6 @@
 const express = require('express');
 const semver = require('semver');
+const { WebClient } = require('@slack/client');
 const aws = require('../src/aws.js');
 const { getData } = require('../src/data.js');
 const initApproval = require('../src/initApproval.js');
@@ -43,11 +44,32 @@ const error = err => ({
 	]
 });
 
+// Remove deployment from data
+const closeOverridden = (req, deployment) => {
+	const web = new WebClient(req.webtaskContext.secrets.SLACK_TOKEN);
+	deployment.slackMessage.message.attachments[0] = Object.assign(
+		deployment.slackMessage.message.attachments[0],
+		{
+			fallback: 'Deployment overriden',
+			pretext: `Deployment on ${deployment.domain} overriden`,
+			color: 'danger',
+			footer: 'Status: Closed',
+			footer_icon: '',
+			ts: Date.now() / 1000
+		}
+	);
+	return web.chat.update({
+		channel: deployment.channel,
+		text: '',
+		ts: deployment.slackMessage.ts,
+		attachments: deployment.slackMessage.message.attachments
+	});
+};
+
 module.exports = () => {
 	const router = express.Router();
 
 	router.post('/', (req, res) => {
-		console.log(req.body);
 		const user = req.body.user_id;
 		const channel = req.body.channel_id;
 		const text = req.body.text;
@@ -109,7 +131,11 @@ module.exports = () => {
 				if (data[domain] && !override) {
 					const curDep = data[domain];
 					return res.status(200)
-						.json(error(`Deployment for ${domain} already exists (*${curDep.target} - ${curDep.status}*). Add \`override\` to the end of your command to start a new deployment`));
+						.json(error(`A deployment for ${domain} already exists (target: *${curDep.target}* - status: *${curDep.status}*). Add \`override\` to the end of your command to start a new deployment`));
+				}
+				const proms = [];
+				if (data[domain]) {
+					proms.push(closeOverridden(req, data[domain]));
 				}
 				const target = semver.maxSatisfying(versions, specifiedTarget);
 				if (!target) {
@@ -122,9 +148,10 @@ module.exports = () => {
 					});
 
 				const deployment = {
-					domain, config, currentVersion, target, specifiedTarget, user, admin, channel, status: 'pending'
+					domain, config, currentVersion, override, target, specifiedTarget, user, admin, channel, status: 'pending'
 				};
-				return initApproval(req, deployment);
+				proms.push(initApproval(req, deployment));
+				return Promise.all(proms);
 			})
 			.catch((err) => {
 				console.error(err);

@@ -13,7 +13,7 @@ const success = dep => ({
 			title: dep.config.appName,
 			title_link: dep.domain,
 			text: `Specified Target was \`${dep.specifiedTarget}\`. Approval requested from <@${dep.admin}>`,
-			author_name: `Initiated by <@${dep.user}>`,
+			author_name: `Initiated by <@${dep.user}>${dep.override ? ' with override' : ''}`,
 			fields: [
 				{
 					title: 'Current Version',
@@ -26,7 +26,10 @@ const success = dep => ({
 					short: true
 				}
 			],
-			color: 'good'
+			color: '#9958F0',
+			footer: 'Status: Pending Approval',
+			footer_icon: 'https://static.factoryfour.com/misc/rings-loading.gif',
+			ts: Date.now() / 1000
 		}
 	]
 });
@@ -40,8 +43,8 @@ const approval = dep => ({
 			pretext: `Pending approval for deployment on ${dep.domain}`,
 			title: dep.config.appName,
 			title_link: dep.domain,
-			text: `Specified Target was \`${dep.specifiedTarget}\`. Your approval is required to continue.`,
-			author_name: `Initiated by <@${dep.user}>`,
+			text: `Specified target was \`${dep.specifiedTarget}\`. Your approval is required to continue.`,
+			author_name: `Initiated by <@${dep.user}>${dep.override ? ' with override' : ''}`,
 			fields: [
 				{
 					title: 'Current Version',
@@ -99,6 +102,18 @@ const write = (req, deployment) => {
 		.then(() => depOut);
 };
 
+const writeTs = (req, deployment) => {
+	return getData(req)
+		.then((data) => {
+			const fetchedData = data || {};
+			const update = Object.assign({}, fetchedData, {
+				[deployment.domain]: deployment
+			});
+			return writeData(req, update);
+		})
+		.then(() => deployment);
+};
+
 module.exports = (req, deployment) => {
 	const { admin } = deployment;
 	let deploymentEntity = Object.assign({}, deployment);
@@ -108,6 +123,12 @@ module.exports = (req, deployment) => {
 		.then((depwithId) => {
 			deploymentEntity = Object.assign({}, deploymentEntity, depwithId);
 			return web.chat.postMessage(success(deployment));
+		})
+		.then((result) => {
+			deploymentEntity = Object.assign({}, deploymentEntity, {
+				slackMessage: result
+			});
+			return writeTs(req, deploymentEntity);
 		})
 		.then(() => web.im.open({
 			user: admin,
