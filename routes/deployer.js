@@ -1,6 +1,7 @@
 const express = require('express');
 const semver = require('semver');
 const aws = require('../src/aws.js');
+const { getData } = require('../src/data.js');
 const initApproval = require('../src/initApproval.js');
 
 const domains = {
@@ -8,14 +9,14 @@ const domains = {
 		dist: 'E2UE1ZTLJTMWZF',
 		appName: 'Production FactoryFour Website',
 		repo: 'factoryfour',
-		bucket: 'factoryfour-dev-app',
+		bucket: 'factoryfour-dist-info',
 		allowLatest: false
 	},
 	'app.factoryfour.com': {
 		dist: 'E2KR4BHIY2KIZZ',
 		appName: 'Production FactoryFour Application',
 		repo: 'react-factoryfour',
-		bucket: 'factoryfour-dev-app',
+		bucket: 'factoryfour-dist-app',
 		allowLatest: false
 	},
 	'dev-app.factoryfour.com': {
@@ -52,7 +53,7 @@ module.exports = () => {
 		const text = req.body.text;
 		const spl = text.split(' ');
 
-		if (spl.length !== 3) {
+		if (spl.length < 3) {
 			return res.status(200)
 				.json(error('Input not long enough'));
 		}
@@ -92,14 +93,24 @@ module.exports = () => {
 			return res.status(200)
 				.json(error('Unable to parse admin'));
 		}
+		let override = false;
+		if (spl[3] && spl[3] === 'override') {
+			override = true;
+		}
 
 		const config = domains[domain];
 		// set target send approval
 		return Promise.all([
 			aws.fetchVersions(req.webtaskContext.secrets, config.bucket),
 			aws.fetchCurrentVersion(req.webtaskContext.secrets, config.dist),
+			getData(req)
 		])
-			.then(([versions, currentVersion]) => {
+			.then(([versions, currentVersion, data]) => {
+				if (data[domain] && !override) {
+					const curDep = data[domain];
+					return res.status(200)
+						.json(error(`Deployment for ${domain} already exists (*${curDep.target} - ${curDep.status}*). Add \`override\` to the end of your command to start a new deployment`));
+				}
 				const target = semver.maxSatisfying(versions, specifiedTarget);
 				if (!target) {
 					return res.status(200)
@@ -107,11 +118,11 @@ module.exports = () => {
 				}
 				res.status(200)
 					.json({
-						text: 'Success! Starting up deployment ...'
+						text: 'Success! Initiating deployment ...'
 					});
 
 				const deployment = {
-					domain, config, currentVersion, target, specifiedTarget, user, admin, channel
+					domain, config, currentVersion, target, specifiedTarget, user, admin, channel, status: 'pending'
 				};
 				return initApproval(req, deployment);
 			})

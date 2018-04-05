@@ -44,12 +44,23 @@ const fetchCurrentVersion = (secrets, distribution) => (new Promise((resolve, re
 		const dist = data.Distribution;
 		const defaultOrigin = dist.DistributionConfig.DefaultCacheBehavior.TargetOriginId;
 		const origins = dist.DistributionConfig.Origins.Items;
-		console.log(defaultOrigin, origins.map(item => item.Id));
-		return resolve(true);
+
+		const current = origins.find((element) => {
+			return defaultOrigin === element.Id;
+		});
+		return resolve(current.OriginPath.substring(1));
 	});
+}));
+
+const updateDistribution = (secrets, deployment) => (new Promise((resolve, reject) => {
+	if (!deployment) {
+		return reject(true);
+	}
+	return resolve(true);
 }));
 
 module.exports = {
 	fetchVersions,
-	fetchCurrentVersion
+	fetchCurrentVersion,
+	updateDistribution
 };
