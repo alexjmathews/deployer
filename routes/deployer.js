@@ -29,8 +29,8 @@ const domains = {
 	},
 	'dev-vendor.fusiform.co': {
 		dist: 'E1ZFZO5NY2VPIN',
-		appName: 'Dev FactoryFour Application',
-		repo: 'react-factoryfour',
+		appName: 'Dev CAST Vendor Application',
+		repo: 'ng-vendor',
 		bucket: 'fusiform-dev-vendor',
 		allowLatest: true
 	}

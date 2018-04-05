@@ -10,46 +10,65 @@ const cloudfront = new AWS.CloudFront();
 // 		return;
 // 	}
 // 	const distirbutions = data.DistributionList.Items;
-// 	console.log(distirbutions.map((dist) => `${dist.Aliases.Items}-${dist.Id}`));
+// 	console.log(JSON.stringify(distirbutions, null, 4));
+// 	// console.log(distirbutions.map((dist) => `${dist.Aliases.Items}-${dist.Id}`));
 // });
 
-
-
-cloudfront.getDistributionConfig({ Id: 'E1ZFZO5NY2VPIN' }, (configerr, config) => {
-	if (configerr) {
-		console.error(configerr);
+cloudfront.createInvalidation({
+	DistributionId: 'E1ZFZO5NY2VPIN',
+	InvalidationBatch: {
+		CallerReference: `${Date.now()}`,
+		Paths: {
+			Quantity: 1,
+			Items: [
+				'/*'
+			]
+		}
+	}
+}, function(err, data) {
+	if (err) {
+		console.error(err);
 		return;
 	}
-	// config.DistributionConfig.
-	const bucket = 'fusiform-dev-vendor';
-	const target = 'v2.13.1';
-	const NOrigin = {
-		Id: `S3-${bucket}/${target}`,
-		DomainName: `${bucket}.s3.amazonaws.com`,
-		OriginPath: `/${target}`,
-		CustomHeaders: {
-			Quantity: 0,
-			Items: []
-		},
-		S3OriginConfig: {
-			OriginAccessIdentity: ''
-		}
-	};
-	config.DistributionConfig.Origins.Items = [NOrigin];
-	config.DistributionConfig.Origins.Quantity = 1;
-	config.DistributionConfig.DefaultCacheBehavior.TargetOriginId = NOrigin.Id;
-	config.Id = 'E1ZFZO5NY2VPIN';
-	config.IfMatch = config.ETag;
-	delete config.ETag;
-
-	cloudfront.updateDistribution(config, (updateErr, result) => {
-		if (updateErr) {
-			console.error(updateErr);
-			return;
-		}
-		console.log(result);
-	});
+	console.log(data);
+	// console.log(distirbutions.map((dist) => `${dist.Aliases.Items}-${dist.Id}`));
 });
+
+// cloudfront.getDistributionConfig({ Id: 'E1ZFZO5NY2VPIN' }, (configerr, config) => {
+// 	if (configerr) {
+// 		console.error(configerr);
+// 		return;
+// 	}
+// 	// config.DistributionConfig.
+// 	const bucket = 'fusiform-dev-vendor';
+// 	const target = 'v2.13.1';
+// 	const NOrigin = {
+// 		Id: `S3-${bucket}/${target}`,
+// 		DomainName: `${bucket}.s3.amazonaws.com`,
+// 		OriginPath: `/${target}`,
+// 		CustomHeaders: {
+// 			Quantity: 0,
+// 			Items: []
+// 		},
+// 		S3OriginConfig: {
+// 			OriginAccessIdentity: ''
+// 		}
+// 	};
+// 	config.DistributionConfig.Origins.Items = [NOrigin];
+// 	config.DistributionConfig.Origins.Quantity = 1;
+// 	config.DistributionConfig.DefaultCacheBehavior.TargetOriginId = NOrigin.Id;
+// 	config.Id = 'E1ZFZO5NY2VPIN';
+// 	config.IfMatch = config.ETag;
+// 	delete config.ETag;
+
+// 	cloudfront.updateDistribution(config, (updateErr, result) => {
+// 		if (updateErr) {
+// 			console.error(updateErr);
+// 			return;
+// 		}
+// 		console.log(result);
+// 	});
+// });
 
 // const S3 = new AWS.S3();
 

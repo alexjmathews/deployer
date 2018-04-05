@@ -52,6 +52,22 @@ const fetchCurrentVersion = (secrets, distribution) => (new Promise((resolve, re
 	});
 }));
 
+const getDistributionsStatuses = (secrets) => (new Promise((resolve, reject) => {
+	AWS.config.update(pluck(secrets));
+	const cloudfront = new AWS.CloudFront();
+
+	cloudfront.listDistributions({ }, (err, data) => {
+		if (err) {
+			return reject(err);
+		}
+		const map = {};
+		data.DistributionList.Items.forEach((elem) => {
+			map[elem.Id] = elem.Status;
+		});
+		return resolve(map);
+	});
+}));
+
 const updateDistribution = (secrets, deployment) => (new Promise((resolve, reject) => {
 	if (!deployment) {
 		return reject(true);
@@ -99,6 +115,7 @@ const updateDistribution = (secrets, deployment) => (new Promise((resolve, rejec
 
 module.exports = {
 	fetchVersions,
+	getDistributionsStatuses,
 	fetchCurrentVersion,
 	updateDistribution
 };
