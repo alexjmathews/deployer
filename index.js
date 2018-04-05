@@ -9,7 +9,6 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
 app.get('/', (req, res) => {
 	console.log('hello');
 	res.sendStatus(200);
