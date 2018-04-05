@@ -3,8 +3,6 @@ const semver = require('semver');
 
 AWS.config.update({ accessKeyId: 'AKIAI3YY2RWQP4STA2YQ', secretAccessKey: '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' });
 
-
-
 // const cloudfront = new AWS.CloudFront();
 // cloudfront.listDistributions({}, function(err, data) {
 // 	if (err) {

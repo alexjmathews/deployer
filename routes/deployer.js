@@ -1,6 +1,7 @@
 const express = require('express');
-const aws = require('../src/aws.js');
 const semver = require('semver');
+const aws = require('../src/aws.js');
+const initApproval = require('../src/initApproval.js');
 
 const domains = {
 	'factoryfour.com': {
@@ -41,38 +42,13 @@ const error = err => ({
 	]
 });
 
-const success = (domain, appName, currentVersion, target, specifiedTarget, user, approver) => ({
-	response_type: 'in_channel',
-	attachments: [
-		{
-			fallback: `<@${user}> is deploying ${domain} to ${target}`,
-			pretext: `Starting a deployment on ${domain}`,
-			title: appName,
-			title_link: domain,
-			text: `Specified Target was \`${specifiedTarget}\`. Approval requested from <@${approver}>`,
-			author_name: `Requested by <@${user}>`,
-			fields: [
-				{
-					title: 'Current Version',
-					value: currentVersion,
-					short: true
-				},
-				{
-					title: 'Target Version',
-					value: target,
-					short: true
-				}
-			],
-			color: '#36a64f'
-		}
-	]
-});
-
 module.exports = () => {
 	const router = express.Router();
 
 	router.post('/', (req, res) => {
+		console.log(req.body);
 		const user = req.body.user_id;
+		const channel = req.body.channel_id;
 		const text = req.body.text;
 		const spl = text.split(' ');
 
@@ -129,13 +105,23 @@ module.exports = () => {
 					return res.status(200)
 						.json(error(`No valid target was found for specified target (${specifiedTarget})`));
 				}
-				return res.status(200)
-					.json(success(domain, config.appName, 'v1.0.0', target, specifiedTarget, user, admin));
+				res.status(200)
+					.json({
+						text: 'Success! Starting up deployment ...'
+					});
+
+				const deployment = {
+					domain, config, currentVersion, target, specifiedTarget, user, admin, channel
+				};
+				return initApproval(req, deployment);
 			})
 			.catch((err) => {
 				console.error(err);
-				return res.status(200)
-					.json(error('Unable to check s3 for versions'));
+				if (!res.headerSent) {
+					return res.status(200)
+						.json(error('Unable to check s3 for versions'));
+				}
+				return err;
 			});
 	});
 

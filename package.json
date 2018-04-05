@@ -19,10 +19,12 @@
   },
   "homepage": "https://github.com/alexjmathews/deployer#readme",
   "dependencies": {
+    "@slack/client": "^4.1.0",
     "aws-sdk": "^2.221.1",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "semver": "^5.5.0",
+    "uuid": "^3.2.1",
     "webtask-tools": "^3.2.1"
   },
   "engines": {
