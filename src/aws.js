@@ -56,6 +56,44 @@ const updateDistribution = (secrets, deployment) => (new Promise((resolve, rejec
 	if (!deployment) {
 		return reject(true);
 	}
+	AWS.config.update(pluck(secrets));
+	const cloudfront = new AWS.CloudFront();
+
+	const Id = deployment.config.dist;
+	const bucket = deployment.config.bucket;
+	const target = deployment.target;
+
+	cloudfront.getDistributionConfig({ Id }, (configerr, config) => {
+		if (configerr) {
+			return reject(configerr);
+		}
+
+		const NOrigin = {
+			Id: `S3-${bucket}/${target}`,
+			DomainName: `${bucket}.s3.amazonaws.com`,
+			OriginPath: `/${target}`,
+			CustomHeaders: {
+				Quantity: 0,
+				Items: []
+			},
+			S3OriginConfig: {
+				OriginAccessIdentity: ''
+			}
+		};
+		config.DistributionConfig.Origins.Items = [NOrigin];
+		config.DistributionConfig.Origins.Quantity = 1;
+		config.DistributionConfig.DefaultCacheBehavior.TargetOriginId = NOrigin.Id;
+		config.Id = Id;
+		config.IfMatch = config.ETag;
+		delete config.ETag;
+
+		cloudfront.updateDistribution(config, (updateErr, result) => {
+			if (updateErr) {
+				return reject(updateErr);
+			}
+			return resolve(result);
+		});
+	});
 	return resolve(true);
 }));
 

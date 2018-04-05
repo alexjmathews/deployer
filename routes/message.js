@@ -29,7 +29,7 @@ const rejectDep = (prevMessage, dep) => {
 	output.attachments[0].color = 'danger';
 	output.attachments[1] = {
 		fallback: 'Success',
-		title: ':small_red_triangle_down: Rejected Deployment.',
+		title: ':woman-gesturing-no::skin-tone-5: Rejected Deployment.',
 		color: 'danger'
 	};
 	return output;
@@ -55,7 +55,7 @@ const closeDeployment = (req, data, deployment) => {
 				deployment.slackMessage.message.attachments[0],
 				{
 					fallback: 'Deployment rejected',
-					pretext: `Deployment on ${deployment.domain} rejected by admin`,
+					pretext: `Deployment on ${deployment.domain} rejected by admin :woman-gesturing-no::skin-tone-5:`,
 					color: 'danger',
 					footer: 'Status: Closed',
 					footer_icon: '',
@@ -118,7 +118,7 @@ module.exports = () => {
 			.then((data) => {
 				const domain = payload.callback_id.split('|')[0];
 				const deployment = data[domain];
-				console.log(JSON.stringify(deployment, null, 4))
+
 				if (!deployment) {
 					return res.status(200)
 						.json(error('Could not find deployment'));

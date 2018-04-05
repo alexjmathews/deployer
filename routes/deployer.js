@@ -21,10 +21,17 @@ const domains = {
 		allowLatest: false
 	},
 	'dev-app.factoryfour.com': {
-		dist: 'E1ZFZO5NY2VPIN',
+		dist: 'E1JHRN95HB5UUD',
 		appName: 'Dev FactoryFour Application',
 		repo: 'react-factoryfour',
 		bucket: 'factoryfour-dev-app',
+		allowLatest: true
+	},
+	'dev-vendor.fusiform.co': {
+		dist: 'E1ZFZO5NY2VPIN',
+		appName: 'Dev FactoryFour Application',
+		repo: 'react-factoryfour',
+		bucket: 'fusiform-dev-vendor',
 		allowLatest: true
 	}
 };
