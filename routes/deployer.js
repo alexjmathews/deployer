@@ -33,6 +33,27 @@ const domains = {
 		repo: 'ng-vendor',
 		bucket: 'fusiform-dev-vendor',
 		allowLatest: true
+	},
+	'dev-clinic.fusiform.co': {
+		dist: 'E2QUPFHPVP60LW',
+		appName: 'Dev CAST Clinic Application',
+		repo: 'ng-clinic',
+		bucket: 'fusiform-dev-clinic',
+		allowLatest: true
+	},
+	'vendor.fusiform.co': {
+		dist: 'E221EDK0GC9E7Q',
+		appName: 'Prod CAST Vendor Application',
+		repo: 'ng-vendor',
+		bucket: 'fusiform-dist-vendor',
+		allowLatest: false
+	},
+	'clinic.fusiform.co': {
+		dist: 'E2XNBJD3VFZDHC',
+		appName: 'Prod CAST Clinic Application',
+		repo: 'ng-clinic',
+		bucket: 'fusiform-dist-clinic',
+		allowLatest: false
 	}
 };
 
