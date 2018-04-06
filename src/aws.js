@@ -113,9 +113,39 @@ const updateDistribution = (secrets, deployment) => (new Promise((resolve, rejec
 	return resolve(true);
 }));
 
+const invalidateBase = (secrets, deployment) => {
+	return new Promise((resolve, reject) => {
+		if (!deployment) {
+			return reject(true);
+		}
+		AWS.config.update(pluck(secrets));
+		const cloudfront = new AWS.CloudFront();
+
+		const Id = deployment.config.dist;
+		cloudfront.createInvalidation({
+			DistributionId: Id,
+			InvalidationBatch: {
+				CallerReference: `${Date.now()}`,
+				Paths: {
+					Quantity: 1,
+					Items: [
+						'/*'
+					]
+				}
+			}
+		}, (err, data) => {
+			if (err) {
+				return reject(err);
+			}
+			return resolve(data);
+		});
+	});
+};
+
 module.exports = {
 	fetchVersions,
 	getDistributionsStatuses,
 	fetchCurrentVersion,
-	updateDistribution
+	updateDistribution,
+	invalidateBase
 };

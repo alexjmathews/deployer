@@ -144,10 +144,16 @@ module.exports = () => {
 				if (data[domain]) {
 					proms.push(closeOverridden(req, data[domain]));
 				}
-				const target = semver.maxSatisfying(versions, specifiedTarget);
-				if (!target) {
-					return res.status(200)
-						.json(error(`No valid target was found for specified target (${specifiedTarget})`));
+
+				let target;
+				if (specifiedTarget === 'latest' && config.allowLatest) {
+					target = 'latest';
+				} else {
+					target = semver.maxSatisfying(versions, specifiedTarget);
+					if (!target) {
+						return res.status(200)
+							.json(error(`No valid target was found for specified target (${specifiedTarget})`));
+					}
 				}
 				res.status(200)
 					.json({

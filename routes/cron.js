@@ -1,7 +1,7 @@
 const express = require('express');
 const { WebClient } = require('@slack/client');
 const { getData, writeData } = require('../src/data.js');
-const { getDistributionsStatuses } = require('../src/aws.js');
+const { getDistributionsStatuses, invalidateBase } = require('../src/aws.js');
 
 const complete = (req, deployment) => {
 	deployment.slackMessage.message.attachments[0] = Object.assign(
@@ -37,6 +37,9 @@ const complete = (req, deployment) => {
 		attachments: deployment.slackMessage.message.attachments
 	})
 		.then(() => {
+			return invalidateBase(req, deployment);
+		})
+		.then(() => {
 			return deployment.domain;
 		});
 };
@@ -45,11 +48,24 @@ const timeout = (req, deployment) => {
 	deployment.slackMessage.message.attachments[0] = Object.assign(
 		deployment.slackMessage.message.attachments[0],
 		{
-			fallback: 'Switching Origins',
-			pretext: `Migrating origins to target on ${deployment.domain}`,
+			fallback: 'Deployment Timeout',
+			pretext: `Unable to deploy ${deployment.domain} due to timeout`,
 			text: `Specified Target was \`${deployment.specifiedTarget}\`. Approved by <@${deployment.admin}>`,
-			footer: 'Status: Origin Switch',
-			color: '#eda45a',
+			footer: 'Status: Failure',
+			footer_icon: '',
+			fields: [
+				{
+					title: 'Current Version',
+					value: deployment.currentVersion,
+					short: true
+				},
+				{
+					title: 'Attempted Version',
+					value: deployment.target,
+					short: true
+				}
+			],
+			color: 'danger',
 			ts: Date.now() / 1000
 		}
 	);
