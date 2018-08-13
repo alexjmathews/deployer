@@ -176,6 +176,7 @@ module.exports = () => {
 							.json(error(`No valid target was found for specified target (${specifiedTarget})`));
 					}
 				}
+				console.log(target);
 				res.status(200)
 					.json({
 						text: 'Success! Initiating deployment ...'

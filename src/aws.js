@@ -45,14 +45,12 @@ const fetchCurrentVersion = (secrets, distribution) => (new Promise((resolve, re
 		const defaultOrigin = dist.DistributionConfig.DefaultCacheBehavior.TargetOriginId;
 		const origins = dist.DistributionConfig.Origins.Items;
 
-		const current = origins.find((element) => {
-			return defaultOrigin === element.Id;
-		});
+		const current = origins.find(element => defaultOrigin === element.Id);
 		return resolve(current.OriginPath.substring(1));
 	});
 }));
 
-const getDistributionsStatuses = (secrets) => (new Promise((resolve, reject) => {
+const getDistributionsStatuses = secrets => (new Promise((resolve, reject) => {
 	AWS.config.update(pluck(secrets));
 	const cloudfront = new AWS.CloudFront();
 
@@ -70,14 +68,14 @@ const getDistributionsStatuses = (secrets) => (new Promise((resolve, reject) => 
 
 const updateDistribution = (secrets, deployment) => (new Promise((resolve, reject) => {
 	if (!deployment) {
-		return reject(true);
+		return reject(new Error('No deployment found'));
 	}
 	AWS.config.update(pluck(secrets));
 	const cloudfront = new AWS.CloudFront();
 
 	const Id = deployment.config.dist;
-	const bucket = deployment.config.bucket;
-	const target = deployment.target;
+	const { bucket } = deployment.config;
+	const { target } = deployment;
 
 	cloudfront.getDistributionConfig({ Id }, (configerr, config) => {
 		if (configerr) {
@@ -103,7 +101,7 @@ const updateDistribution = (secrets, deployment) => (new Promise((resolve, rejec
 		config.IfMatch = config.ETag;
 		delete config.ETag;
 
-		cloudfront.updateDistribution(config, (updateErr, result) => {
+		return cloudfront.updateDistribution(config, (updateErr, result) => {
 			if (updateErr) {
 				return reject(updateErr);
 			}
@@ -113,34 +111,32 @@ const updateDistribution = (secrets, deployment) => (new Promise((resolve, rejec
 	return resolve(true);
 }));
 
-const invalidateBase = (secrets, deployment) => {
-	return new Promise((resolve, reject) => {
-		if (!deployment) {
-			return reject(true);
-		}
-		AWS.config.update(pluck(secrets));
-		const cloudfront = new AWS.CloudFront();
+const invalidateBase = (secrets, deployment) => new Promise((resolve, reject) => {
+	if (!deployment) {
+		return reject(new Error('No deployment found'));
+	}
+	AWS.config.update(pluck(secrets));
+	const cloudfront = new AWS.CloudFront();
 
-		const Id = deployment.config.dist;
-		cloudfront.createInvalidation({
-			DistributionId: Id,
-			InvalidationBatch: {
-				CallerReference: `${Date.now()}`,
-				Paths: {
-					Quantity: 1,
-					Items: [
-						'/*'
-					]
-				}
+	const Id = deployment.config.dist;
+	return cloudfront.createInvalidation({
+		DistributionId: Id,
+		InvalidationBatch: {
+			CallerReference: `${Date.now()}`,
+			Paths: {
+				Quantity: 1,
+				Items: [
+					'/*'
+				]
 			}
-		}, (err, data) => {
-			if (err) {
-				return reject(err);
-			}
-			return resolve(data);
-		});
+		}
+	}, (err, data) => {
+		if (err) {
+			return reject(err);
+		}
+		return resolve(data);
 	});
-};
+});
 
 module.exports = {
 	fetchVersions,

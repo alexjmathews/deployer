@@ -120,10 +120,10 @@ module.exports = () => {
 					const deploy = deployments[dep];
 					const id = deploy.config.dist;
 					const current = statuses[id];
-					if (current === 'Deployed') {
+					if (deploy.approved && current === 'Deployed') {
 						updates.push(complete(req, deploy));
 					}
-					if (Date.now() - deploy.createdAt > 1000 * 60 * 60) {
+					if (!deploy.approved && Date.now() - deploy.createdAt > 1000 * 60 * 15) {
 						updates.push(timeout(req, deploy));
 					}
 				});

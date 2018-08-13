@@ -78,6 +78,7 @@ const startDeployment = (req, data, deployment) =>
 		.then(() => {
 			const update = Object.assign({}, data, {
 				[deployment.domain]: Object.assign({}, deployment, {
+					approved: true,
 					status: 'originShift'
 				})
 			});
