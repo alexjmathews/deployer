@@ -57,6 +57,7 @@ const domains = {
 	},
 	'admin.factoryfour.com': {
 		dist: 'E1A2UK9ZQQSMRF',
+		appName: 'Prod FactoryFour Admin Application',
 		repo: 'react-admin',
 		bucket: 'factoryfour-dist-admin',
 		allowLatest: false
