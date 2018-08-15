@@ -54,6 +54,33 @@ const domains = {
 		repo: 'ng-clinic',
 		bucket: 'fusiform-dist-clinic',
 		allowLatest: false
+	},
+	'admin.factoryfour.com': {
+		dist: 'E1A2UK9ZQQSMRF',
+		repo: 'react-admin',
+		bucket: 'factoryfour-dist-admin',
+		allowLatest: false
+	},
+	'dev-admin.factoryfour.com': {
+		dist: 'E13G2EWTJSMWSE',
+		appName: 'Dev FactoryFour Admin Application',
+		repo: 'react-admin',
+		bucket: 'factoryfour-dev-admin',
+		allowLatest: true
+	},
+	'configurator.factoryfour.com': {
+		dist: 'E3VZRNI3Y8MHL',
+		appName: 'Prod FactoryFour Configurator',
+		repo: 'react-configurator',
+		bucket: 'factoryfour-dist-configurator',
+		allowLatest: false
+	},
+	'dev-configurator.factoryfour.com': {
+		dist: 'E2VK09G7VONMNC',
+		appName: 'Dev FactoryFour Configurator',
+		repo: 'react-configurator',
+		bucket: 'factoryfour-dev-configurator',
+		allowLatest: true
 	}
 };
 
