@@ -82,12 +82,27 @@ const domains = {
 		repo: 'react-configurator',
 		bucket: 'factoryfour-dev-configurator',
 		allowLatest: true
+	},
+	'plugin.factoryfour.com': {
+		dist: 'E16LS4I3CASP9Y',
+		appName: 'Prod FactoryFour Orders Plugin',
+		repo: 'react-orders plugin',
+		bucket: 'factoryfour-dist-plugin',
+		allowLatest: false
+	},
+	'dev-plugin.factoryfour.com': {
+		dist: 'E2BPOZDHZEVPVW',
+		appName: 'Dev FactoryFour Orders Plugin',
+		repo: 'react-orders plugin',
+		bucket: 'factoryfour-dev-plugin',
+		allowLatest: true
 	}
 };
 
 const admins = {
 	U2MF72A3X: 'nikita',
-	U037H1T8V: 'alex'
+	U037H1T8V: 'alex',
+	UAU6RFDB3: 'charlie'
 };
 
 const error = err => ({
