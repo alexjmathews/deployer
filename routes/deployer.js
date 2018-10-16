@@ -76,6 +76,13 @@ const domains = {
 		bucket: 'factoryfour-dist-configurator',
 		allowLatest: false
 	},
+	'vea.thema-optical.com': {
+		dist: 'E279I94Z03VPYR',
+		appName: 'Thema Configurator',
+		repo: 'react-configurator',
+		bucket: 'factoryfour-dist-configurator',
+		allowLatest: false
+	},
 	'dev-configurator.factoryfour.com': {
 		dist: 'E2VK09G7VONMNC',
 		appName: 'Dev FactoryFour Configurator',
