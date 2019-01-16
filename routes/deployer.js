@@ -109,7 +109,9 @@ const domains = {
 const admins = {
 	U2MF72A3X: 'nikita',
 	U037H1T8V: 'alex',
-	UAU6RFDB3: 'charlie'
+	UAU6RFDB3: 'charlie',
+	U549F270D: 'matt',
+	U31SWUS5P: 'scott',
 };
 
 const error = err => ({
